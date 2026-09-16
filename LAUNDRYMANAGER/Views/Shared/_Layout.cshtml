@@ -1,0 +1,67 @@
+@using Microsoft.AspNetCore.Http
+@{
+    var currentEmail = Context.Session.GetString("UserEmail");
+    var currentRole = Context.Session.GetString("UserRole");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - iWS Laundry</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/LAUNDRYMANAGER.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+</head>
+<body class="laundry-page">
+    <div id="loading-screen">
+        <div class="machine-drum">
+            <div class="drum-water"></div>
+            <div class="bubble-texture"></div>
+        </div>
+    </div>
+
+    <header>
+        <nav class="navbar navbar-dark laundry-nav shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-decoration-none" asp-controller="Home" asp-action="Landing">
+                    <i class="bi bi-washing-machine me-2"></i>iWS Laundry
+                </a>
+                @if (!string.IsNullOrEmpty(currentEmail))
+                {
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white small d-none d-md-inline">
+                            <i class="bi bi-person-circle me-1"></i>@currentEmail
+                        </span>
+                        @if (currentRole == "ResAdmin" || currentRole == "Admin")
+                        {
+                            <a href="/Admin" class="btn btn-sm btn-outline-light">Dashboard</a>
+                        }
+                        else
+                        {
+                            <a href="/Home/Index" class="btn btn-sm btn-outline-light">Laundry</a>
+                        }
+                        <a href="/Account/Logout" class="btn btn-sm btn-outline-light">Sign Out</a>
+                    </div>
+                }
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted mt-4">
+        <div class="container py-3">&copy; 2026 - iWS Laundry - <a asp-controller="Home" asp-action="Privacy">Privacy</a></div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

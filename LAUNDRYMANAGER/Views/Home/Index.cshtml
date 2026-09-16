@@ -1,0 +1,203 @@
+@model IEnumerable<LaundryManager.Models.Machine>
+@using LaundryManager.Models
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    Layout = null;
+    var residence = ViewBag.Residence as Residence;
+    var upcoming = ViewBag.UpcomingBookings as Dictionary<int, List<Booking>> ?? new();
+    var myBookings = ViewBag.MyBookings as List<Booking> ?? new();
+    var studentEmail = (string?)ViewBag.StudentEmail ?? "";
+    var now = DateTime.Now;
+    var userRole = Context.Session.GetString("UserRole");
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(residence?.Name ?? "Laundry") - iWS Laundry</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="laundry-page">
+    <nav class="navbar navbar-dark laundry-nav shadow-sm mb-4">
+        <div class="container">
+            <div>
+                <span class="navbar-brand fw-bold"><i class="bi bi-washing-machine me-2"></i>iWS Laundry</span>
+                <div class="small text-white-50">@residence?.Name</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-white small d-none d-md-inline"><i class="bi bi-person-circle me-1"></i>@studentEmail</span>
+
+                @if (userRole == "Admin" || userRole == "ResAdmin")
+                {
+                    <a href="/Admin/Registrations" class="btn btn-sm btn-outline-light"><i class="bi bi-shield-lock me-1"></i>Registrations</a>
+                }
+
+                <button id="enableNotificationsBtn" class="btn btn-sm btn-outline-light">🔔</button>
+                <a href="/Account/Logout" class="btn btn-sm btn-outline-light fw-bold">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <div class="res-hero shadow-sm mb-4">
+            <div>
+                <span class="badge rounded-pill text-bg-light mb-2"><i class="bi bi-house-fill me-1"></i>Your residence</span>
+                <h1 class="display-6 fw-bold mb-1">@residence?.Name</h1>
+                <p class="mb-0"><i class="bi bi-geo-alt-fill me-1"></i>@residence?.Address</p>
+            </div>
+            <div class="res-washer"><i class="bi bi-droplet-fill"></i></div>
+        </div>
+
+        @if (TempData["BookingConfirmation"] != null)
+        {
+            <div class="alert alert-success shadow-sm"><i class="bi bi-check-circle-fill me-2"></i>@TempData["BookingConfirmation"]</div>
+        }
+        @if (TempData["BookingError"] != null)
+        {
+            <div class="alert alert-warning shadow-sm"><i class="bi bi-exclamation-circle-fill me-2"></i>@TempData["BookingError"]</div>
+        }
+
+        <div class="row g-3 mb-4">
+            <div class="col-4"><div class="stat-tile"><span>Available</span><strong class="text-success">@Model.Count(m => m.Status == MachineStatus.Working && !m.IsBooked)</strong></div></div>
+            <div class="col-4"><div class="stat-tile"><span>In use</span><strong class="text-warning">@Model.Count(m => m.IsBooked)</strong></div></div>
+            <div class="col-4"><div class="stat-tile"><span>Unavailable</span><strong class="text-danger">@Model.Count(m => m.Status != MachineStatus.Working)</strong></div></div>
+        </div>
+
+        @if (myBookings.Any())
+        {
+            <div class="card glass-card mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold"><i class="bi bi-calendar-check me-2"></i>My bookings</h5>
+                    <div class="row g-2">
+                        @foreach (var b in myBookings)
+                        {
+                            var machine = Model.FirstOrDefault(m => m.Id == b.MachineId);
+                            <div class="col-md-6">
+                                <div class="booking-summary">
+                                    <strong>@machine?.Name</strong>
+                                    <span>@b.SlotStart.ToString("dd MMM, HH:mm") – @b.SlotEnd.ToString("HH:mm")</span>
+                                    <small>@((int)(b.SlotEnd - b.SlotStart).TotalMinutes) minute booking</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row g-4">
+            @foreach (var machine in Model)
+            {
+                var machineBookings = upcoming.ContainsKey(machine.Id) ? upcoming[machine.Id] : new List<Booking>();
+                var nextBooking = machineBookings.FirstOrDefault();
+                var activeBooking = myBookings.FirstOrDefault(b => b.MachineId == machine.Id && b.SlotStart <= now && b.SlotEnd > now);
+                var someoneElseActive = machine.IsBooked && machine.BookedBy != studentEmail;
+                var immediateAvailable = machine.Status == MachineStatus.Working && !machine.IsBooked && nextBooking == null;
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="machine-card h-100 d-flex flex-column">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="machine-icon-box"><i class="bi @(machine.Type == "Dryer" ? "bi-wind" : "bi-droplet-half")"></i></div>
+                            <div>
+                                <h5 class="fw-bold mb-0">@machine.Name</h5>
+                                <span class="text-muted small">@machine.Type • @Machine.GetAverageDurationMinutes(machine.Type) min cycle</span>
+                            </div>
+                        </div>
+
+                        @if (machine.Status != MachineStatus.Working)
+                        {
+                            <span class="status-pill status-broken mb-3"><i class="bi bi-x-circle-fill"></i>@(machine.Status == MachineStatus.UnderRepair ? "Under Repair" : "Out of Order")</span>
+                            <p class="text-muted small">This machine is unavailable until the residence manager marks it working.</p>
+                            <a href="/Home/ReportFault?machineId=@machine.Id" class="btn btn-sm btn-outline-danger mt-auto">Report another issue</a>
+                        }
+                        else if (machine.IsBooked && machine.BookedBy == studentEmail)
+                        {
+                            var finish = machine.GetEstimatedFinishTime();
+                            <span class="status-pill status-inuse mb-2"><i class="bi bi-lock-fill"></i>Reserved for you</span>
+
+                            @if (activeBooking != null && !activeBooking.ConfirmedAt.HasValue && !machine.IsConfirmed)
+                            {
+                                <div class="arrival-card mb-3">
+                                    <strong><i class="bi bi-person-check-fill me-1"></i>Confirm your arrival</strong>
+                                    <small class="d-block">You have 10 minutes from @activeBooking.SlotStart.ToString("HH:mm") to confirm. After that the reservation becomes a no-show.</small>
+                                    <form asp-action="ConfirmMachineUsage" method="post" class="mt-2">
+                                        <input type="hidden" name="machineId" value="@machine.Id" />
+                                        <button class="btn btn-success btn-sm w-100 fw-bold">I’ve arrived — confirm</button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="small text-success fw-semibold mb-2"><i class="bi bi-patch-check-fill me-1"></i>Arrival confirmed</span>
+                            }
+
+                            @if (finish.HasValue)
+                            {
+                                <p class="text-muted small countdown-timer" data-finish="@finish.Value.ToString("o")">Calculating...</p>
+                            }
+                            <form asp-action="ReleaseMachine" method="post" class="mt-auto">
+                                <input type="hidden" name="machineId" value="@machine.Id" />
+                                <button class="btn btn-warning btn-sm w-100 fw-bold">Finish & Release</button>
+                            </form>
+                        }
+                        else if (someoneElseActive)
+                        {
+                            <span class="status-pill status-inuse mb-3"><i class="bi bi-lock-fill"></i>In use by another student</span>
+                            <button class="btn btn-light btn-sm w-100 mt-auto" disabled>Book Now unavailable</button>
+                        }
+                        else
+                        {
+                            <span class="status-pill status-available mb-2"><i class="bi bi-check-circle-fill"></i>Available</span>
+
+                            @if (nextBooking != null)
+                            {
+                                <div class="reservation-lock mb-3">
+                                    <strong><i class="bi bi-calendar-event me-1"></i>Reserved</strong>
+                                    <span>@nextBooking.SlotStart.ToString("HH:mm") – @nextBooking.SlotEnd.ToString("HH:mm")</span>
+                                    <small>@((int)(nextBooking.SlotEnd - nextBooking.SlotStart).TotalMinutes) minutes • another student has this slot</small>
+                                </div>
+                            }
+
+                            <div class="mt-auto">
+                                <form asp-action="BookMachine" method="post" class="mb-2">
+                                    <input type="hidden" name="machineId" value="@machine.Id" />
+                                    <button class="btn btn-success btn-sm w-100 fw-bold" disabled="@(!immediateAvailable)">
+                                        @(immediateAvailable ? "Book Machine Now" : "Book Now unavailable")
+                                    </button>
+                                </form>
+                                <a href="/Bookings/Slots?machineId=@machine.Id" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                                    <i class="bi bi-calendar-plus me-1"></i>Reserve a time slot
+                                </a>
+                                <a href="/Home/ReportFault?machineId=@machine.Id" class="btn btn-link btn-sm text-danger w-100 mt-1">Report a fault</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+            document.querySelectorAll('.countdown-timer').forEach(el => {
+                const finish = new Date(el.dataset.finish);
+                const tick = () => {
+                    const ms = finish - new Date();
+                    if (ms <= 0) { el.innerHTML = '<span class="text-success fw-bold">Cycle complete — releasing…</span>'; return; }
+                    const m = Math.floor(ms / 60000), s = Math.floor(ms % 60000 / 1000);
+                    el.textContent = `Time remaining: ${m}m ${s}s`;
+                };
+                tick(); setInterval(tick, 1000);
+            });
+            setTimeout(() => location.reload(), 30000);
+    </script>
+    <script src="~/js/push.js"></script>
+    <script>
+            document.getElementById('enableNotificationsBtn')?.addEventListener('click', function () {
+                subscribeToPush("@Configuration["VapidKeys:PublicKey"]", "@studentEmail");
+            });
+    </script>
+</body>
+</html>

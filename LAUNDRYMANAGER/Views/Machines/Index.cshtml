@@ -1,0 +1,100 @@
+@model IEnumerable<LaundryManager.Models.Machine>
+@using LaundryManager.Models
+@{
+    Layout = null;
+    var first = Model.FirstOrDefault();
+    var residence = first?.Residence;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Machines - iWS Laundry Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="laundry-page">
+<nav class="navbar navbar-dark laundry-nav shadow-sm mb-4">
+    <div class="container">
+        <span class="navbar-brand fw-bold"><i class="bi bi-washing-machine me-2"></i>@(residence?.Name ?? "Residence")</span>
+        <div>
+            <a href="/Admin" class="btn btn-sm btn-outline-light me-2">Dashboard</a>
+            <a href="/Account/Logout" class="btn btn-sm btn-outline-light">Sign Out</a>
+        </div>
+    </div>
+</nav>
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Laundry Machines</h2>
+            <p class="text-muted mb-0">Manage the washers and dryers belonging to your residence.</p>
+        </div>
+        <a href="/Machines/Create" class="btn btn-primary fw-bold"><i class="bi bi-plus-lg me-1"></i>Add machine</a>
+    </div>
+
+    <div class="card glass-card">
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="p-5 text-center">
+                    <i class="bi bi-washing-machine display-4 text-muted"></i>
+                    <h5 class="fw-bold mt-3">No machines yet</h5>
+                    <p class="text-muted">Add the first washer or dryer for this residence.</p>
+                    <a href="/Machines/Create" class="btn btn-primary">Add machine</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light"><tr><th class="ps-4">Machine</th><th>Type</th><th>Status</th><th>Booking</th><th class="text-end pe-4">Actions</th></tr></thead>
+                        <tbody>
+                        @foreach (var machine in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@machine.Name</td>
+                                <td>@machine.Type</td>
+                                <td>
+                                    <span class="badge @(machine.Status == MachineStatus.Working ? "text-bg-success" : machine.Status == MachineStatus.UnderRepair ? "text-bg-warning" : "text-bg-danger")">
+                                        @(machine.Status == MachineStatus.Working ? "Working" : machine.Status == MachineStatus.UnderRepair ? "Under Repair" : "Out of Order")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (machine.IsBooked)
+                                    {
+                                        <span class="small fw-semibold"><i class="bi bi-lock-fill me-1"></i>@machine.BookedBy</span>
+                                        @if (machine.BookedAt.HasValue)
+                                        {
+                                            <div class="small text-muted">Started @machine.BookedAt.Value.ToString("HH:mm")</div>
+                                        }
+                                    }
+                                    else { <span class="text-muted small">Free</span> }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <form asp-action="UpdateStatus" method="post">
+                                            <input type="hidden" name="id" value="@machine.Id" />
+                                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="Working" selected="@(machine.Status == MachineStatus.Working ? "selected" : null)">Working</option>
+                                                <option value="UnderRepair" selected="@(machine.Status == MachineStatus.UnderRepair ? "selected" : null)">Under Repair</option>
+                                                <option value="OutOfOrder" selected="@(machine.Status == MachineStatus.OutOfOrder ? "selected" : null)">Out of Order</option>
+                                            </select>
+                                        </form>
+                                        <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this machine?');">
+                                            <input type="hidden" name="id" value="@machine.Id" />
+                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+</body>
+</html>

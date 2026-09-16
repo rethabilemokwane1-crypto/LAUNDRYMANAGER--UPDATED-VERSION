@@ -1,0 +1,403 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html { 
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+
+/* --- THEME COLORS (Inspired by image_fe7447.jpg) --- */
+:root {
+    /* Your Main Page Background Color from the vector art */
+    --iws-page-bg: #89C7E6;
+    /* Water Color for loading */
+    --iws-water-color: #2F90B1;
+    /* Card Background/Bubble Color */
+    --iws-bubble-white: #E6F3F7;
+}
+
+/* --- OVERRIDE BOOTSTRAP DEFAULT (Optionally, add this to _Layout.cshtml) --- */
+/* (To apply the specific vector art blue to the entire page background) */
+body {
+    background-color: var(--iws-page-bg) !important;
+}
+
+/* Override the standard white cards/buttons with a light, clear bubble effect */
+.card, .btn-light, .bg-white {
+    background-color: var(--iws-bubble-white) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(47, 144, 177, 0.2) !important;
+}
+
+/* Define the new IWS accent for active status buttons */
+.btn-primary {
+    background-color: var(--iws-water-color) !important;
+    border: none;
+}
+
+
+/* =========================================
+   LOADING SCREEN: BUBBLE FILL ANIMATION
+   ========================================= */
+
+/* The full-screen overlay container */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--iws-bubble-white); /* Light/transparent feel */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Stays on top */
+}
+
+/* The circular container mimicking a washing machine drum */
+.machine-drum {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden; /* Important for the fill effect */
+    border: 8px solid var(--iws-water-color);
+    box-shadow: 0 0 20px rgba(47, 144, 177, 0.4);
+}
+
+/* The background water element (the part that fills up) */
+.drum-water {
+    position: absolute;
+    bottom: -100%; /* Initially below the visible area */
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--iws-water-color);
+    animation: water-fill 2s forwards, drum-spin 4s linear infinite;
+}
+
+/* The overlay element creating the bubble texture (using a CSS pattern) */
+.bubble-texture {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, white 20%, transparent 20%), radial-gradient(circle, white 20%, transparent 20%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    opacity: 0.15; /* Subtly embedded */
+}
+
+/* --- ANIMATION KEYFRAMES --- */
+
+/* KEYFRAME: The water filling action */
+@keyframes water-fill {
+    0% {
+        bottom: -100%;
+    }
+    /* Starting empty */
+    80% {
+        bottom: -10%;
+    }
+    /* Filling near the top */
+    100% {
+        bottom: 0%;
+    }
+    /* Settle */
+}
+
+/* KEYFRAME: A subtle spin to simulate a wash cycle */
+@keyframes drum-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+/* =========================================
+   MODERN GLASSMORPHISM DESIGN (Option 2)
+   ========================================= */
+
+/* Use a modern gradient for the page background to enhance the glass effect */
+body.glass-dashboard {
+    background: radial-gradient(circle at 10% 20%, rgb(18, 126, 175) 0%, rgb(6, 102, 166) 90%);
+    min-height: 100vh;
+}
+
+/* THE GLASS CARD: This creates the frosted effect */
+.glass-card {
+    /* Use a light, semi-transparent background */
+    background: rgba(255, 255, 255, 0.75);
+    /* The magic frosted glass effect (requires browser prefixes for compatibility) */
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    /* Modern rounded corners and subtle shadow */
+    border-radius: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    /* Update default spacing */
+    margin-bottom: 20px;
+    padding: 1.25rem;
+    overflow: hidden;
+}
+
+/* Layout within the card: Icon on left, text on right */
+.glass-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Refined circular icon box with modern gradients */
+.glass-card-icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Use dynamic blue/purple gradients from the design */
+    background: linear-gradient(135deg, #2F90B1 0%, #7E57C2 100%);
+    color: white;
+    font-size: 1.75rem;
+    box-shadow: 0 4px 10px rgba(47, 144, 177, 0.3);
+}
+
+/* Refined Typography inside the card */
+.glass-card .machine-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #0d2c4c;
+    margin-bottom: 2px;
+}
+
+.glass-card .machine-type {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Status LEDs: Integrated and compact */
+.status-led {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-available .status-led {
+    background-color: #28a745;
+}
+/* Green */
+.status-inuse .status-led {
+    background-color: #fca311;
+}
+/* Orange */
+.status-broken .status-led {
+    background-color: #e63946;
+}
+/* Red */
+
+/* MODERN, COMPACT BUTTONS */
+.glass-card .btn {
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+/* Primary Action: Deep blue with slight elevation */
+.btn-glass-primary {
+    background-color: #0666A6;
+    color: white;
+    border: none;
+}
+
+    .btn-glass-primary:hover {
+        background-color: #0a4f7e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(6, 102, 166, 0.3);
+    }
+
+/* Compact Fault Icon Button */
+.btn-fault-icon {
+    background-color: transparent;
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+    .btn-fault-icon:hover {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-color: rgba(220, 53, 69, 0.5);
+    }
+
+/* ===== Laundry Manager theme ===== */
+.laundry-page {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,.65), transparent 25%),
+        linear-gradient(145deg, #dff6ff 0%, #a8def5 48%, #72bddc 100%) !important;
+    color: #103b52;
+}
+
+.laundry-nav {
+    background: linear-gradient(90deg, #116b91, #2f9fc4);
+}
+
+.laundry-logo {
+    width: 74px;
+    height: 74px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8f8ff;
+    color: #147ca4;
+    font-size: 2rem;
+    box-shadow: 0 10px 25px rgba(20,124,164,.18);
+}
+
+.laundry-icon { color: #147ca4; }
+
+.res-hero {
+    border-radius: 24px;
+    padding: 2rem;
+    color: white;
+    background: linear-gradient(120deg, #116b91, #35a7ca);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.res-washer {
+    font-size: 6rem;
+    opacity: .18;
+    transform: rotate(-8deg);
+}
+
+.glass-card {
+    background: rgba(255,255,255,.84) !important;
+    border: 1px solid rgba(255,255,255,.7) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 12px 35px rgba(18,101,133,.13) !important;
+    backdrop-filter: blur(10px);
+}
+
+.stat-tile {
+    background: rgba(255,255,255,.86);
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(18,101,133,.10);
+}
+.stat-tile span { display:block; color:#6b7f89; font-size:.78rem; text-transform:uppercase; font-weight:700; }
+.stat-tile strong { display:block; font-size:1.7rem; margin-top:.2rem; }
+
+.machine-card {
+    background: rgba(255,255,255,.9);
+    border: 1px solid rgba(255,255,255,.75);
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: 0 12px 30px rgba(18,101,133,.12);
+}
+
+.machine-icon-box {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    border-radius: 15px;
+    background: #e5f7ff;
+    color: #147ca4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.status-pill {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    width:max-content;
+    padding:7px 12px;
+    border-radius:999px;
+    font-size:.8rem;
+    font-weight:700;
+}
+.status-available { background:#e7f8ef; color:#16804e; }
+.status-inuse { background:#fff1d8; color:#9a6500; }
+.status-broken { background:#fde9e9; color:#b42323; }
+
+.reservation-lock, .arrival-card {
+    border-radius: 14px;
+    padding: .8rem .9rem;
+    border: 1px solid #b8ddec;
+    background: #eefaff;
+}
+.reservation-lock strong, .arrival-card strong { display:block; }
+.reservation-lock span { display:block; font-weight:700; color:#166783; }
+.reservation-lock small, .arrival-card small { color:#607985; }
+
+.booking-summary {
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:.75rem 1rem;
+    border-radius:12px;
+    background:#effaff;
+    border:1px solid #cdebf5;
+}
+.booking-summary span { font-weight:700; }
+.booking-summary small { color:#657b86; }
+
+.slot-card {
+    min-height: 108px;
+    border-radius: 15px;
+    padding: .9rem;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:3px;
+    border:1px solid #c8e7f2;
+}
+.slot-card strong { font-size:1rem; }
+.slot-card small { color:#6a808a; }
+.slot-card span { font-size:.82rem; font-weight:700; }
+.slot-free {
+    background:#f7fdff;
+    color:#126b8b;
+}
+.slot-free:hover {
+    background:#e6f8ff;
+    border-color:#69bddb;
+    transform:translateY(-1px);
+}
+.slot-taken {
+    background:#e7eaec;
+    color:#69757a;
+    border-color:#d1d7da;
+    cursor:not-allowed;
+}
