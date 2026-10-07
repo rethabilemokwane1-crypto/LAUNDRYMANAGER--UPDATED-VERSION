@@ -402,79 +402,19 @@ namespace LaundryManager.Controllers
         }
 
         // =========================================================
-        // REGISTER MANAGER - GET
+        // REGISTER MANAGER - REDIRECT TO THE REAL ONE
         // =========================================================
+        //
+        // The working manager registration lives in AdminController.Register:
+        // it captures the residence NAME + ADDRESS and creates the Residence
+        // record itself. The old form here only offered a dropdown of
+        // residences that already exist, which is useless for a brand new
+        // manager. Anything still pointing here gets forwarded.
 
         [HttpGet]
         public IActionResult RegisterManager()
         {
-            LoadResidences();
-
-            return View();
-        }
-
-        // =========================================================
-        // REGISTER MANAGER - POST
-        // =========================================================
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RegisterManager(
-            RegisterViewModel model)
-        {
-            LoadResidences();
-
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var email = model.Email.Trim().ToLowerInvariant();
-
-            if (_context.Users.Any(u => u.Email.ToLower() == email))
-            {
-                ModelState.AddModelError("Email", "An account with this email already exists.");
-                return View(model);
-            }
-
-            var token = Guid.NewGuid().ToString("N");
-
-            var user = new User
-            {
-                Email = email,
-                Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
-                IsEmailVerified = false,
-                EmailVerificationToken = token,
-                Role = "ResAdmin", // Residence Manager role mapping
-                ResidenceId = model.ResidenceId
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var link = Url.Action(
-                "VerifyEmail",
-                "Account",
-                new { email = user.Email, token = token },
-                Request.Scheme);
-
-            try
-            {
-                await _emailService.SendEmailAsync(
-                    user.Email,
-                    "Verify your iWS Laundry Manager account",
-                    $"Hi,\n\n" +
-                    $"Welcome to the iWS Laundry Portal.\n\n" +
-                    $"Please verify your Residence Manager account by opening the link below:\n\n" +
-                    $"{link}\n\n" +
-                    $"- iWS Laundry Portal");
-            }
-            catch
-            {
-                ViewBag.Message = "Manager account created, but the verification email could not be sent.";
-                return View("RegisterConfirmation");
-            }
-
-            ViewBag.Message = "Residence Manager account created! Please check your email to verify your account.";
-            return View("RegisterConfirmation");
+            return RedirectToAction("Register", "Admin");
         }
 
         // =========================================================
@@ -592,10 +532,11 @@ namespace LaundryManager.Controllers
                         $"{link}\n\n" +
                         $"- iWS Laundry Portal");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Do not expose SMTP configuration
-                    // or credentials to the user.
+                    // Do not expose SMTP configuration or credentials to the
+                    // user, but log it so a failed send is not invisible.
+                    Console.WriteLine($"[ForgotPassword] Email send failed: {ex.Message}");
                 }
             }
 

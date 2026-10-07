@@ -401,3 +401,114 @@ body.glass-dashboard {
     border-color:#d1d7da;
     cursor:not-allowed;
 }
+
+/* =========================================
+   IWS UNIFIED THEME
+   One palette for every page EXCEPT the admin dashboard.
+   A page opts in with: <body class="laundry-page iws-themed">
+   Palette is sampled from the logo (navy #1D5179, teal #6BC4C6).
+   Nothing above this line was edited and every rule below is gated
+   behind .iws-themed, so the admin dashboard looks identical.
+   Status colours (green available / amber in-use / red broken) are
+   deliberately NOT part of the brand palette and are left alone.
+   ========================================= */
+:root {
+    --iws-deep:      #12395c;  /* nav + hero start, button hover      */
+    --iws-mid:       #1d5179;  /* logo navy: buttons, links, icons    */
+    --iws-bright:    #6bc4c6;  /* logo teal: accents, nav underline   */
+    --iws-teal-dark: #2a8a92;  /* teal dark enough for text / focus   */
+    --iws-focus:     #2a8a92;
+    --iws-ink:       #12304b;  /* body text                           */
+}
+
+.iws-themed .text-iws { color: var(--iws-mid); }
+
+/* Links: one blue instead of Bootstrap's default */
+.iws-themed a:not(.btn):not(.nav-link):not(.navbar-brand) { color: var(--iws-mid); }
+.iws-themed a:not(.btn):not(.nav-link):not(.navbar-brand):hover { color: var(--iws-deep); }
+
+/* Solid and outline buttons share one hue, and both get a hover state */
+.iws-themed .btn { border-radius: 8px; }
+.iws-themed .btn-primary { background-color: var(--iws-mid) !important; color: #fff; }
+.iws-themed .btn-primary:hover,
+.iws-themed .btn-primary:focus { background-color: var(--iws-deep) !important; }
+
+.iws-themed .btn-outline-primary {
+    color: var(--iws-mid);
+    border-color: var(--iws-mid);
+}
+.iws-themed .btn-outline-primary:hover,
+.iws-themed .btn-outline-primary:focus,
+.iws-themed .btn-outline-primary:active {
+    color: #fff;
+    background-color: var(--iws-mid);
+    border-color: var(--iws-mid);
+}
+
+/* One focus ring for buttons, inputs and dropdowns */
+.iws-themed .btn:focus,
+.iws-themed .btn:active:focus,
+.iws-themed .form-control:focus,
+.iws-themed .form-select:focus,
+.iws-themed .form-check-input:focus {
+    box-shadow: 0 0 0 .1rem white, 0 0 0 .25rem var(--iws-focus);
+}
+.iws-themed .form-control:focus,
+.iws-themed .form-select:focus { border-color: var(--iws-focus); }
+
+/* ---------- PHOTO BACKGROUND (iws-themed pages only) ----------
+   Navy-to-teal tint over the laundry-room photo so it matches the logo
+   and keeps white cards readable. The same gradient is layered with
+   `fixed` so photo and tint stay aligned while scrolling. */
+.laundry-page.iws-themed {
+    background:
+        linear-gradient(135deg, rgba(10, 38, 66, .84) 0%, rgba(29, 81, 121, .66) 55%, rgba(46, 140, 150, .52) 100%) fixed,
+        url('../images/laundry-bg.jpg') center / cover no-repeat fixed !important;
+    color: var(--iws-ink);
+}
+
+/* ---------- Surfaces: one calm, near-opaque white card ---------- */
+.iws-themed .glass-card,
+.iws-themed .stat-tile,
+.iws-themed .machine-card {
+    background: rgba(255, 255, 255, .95) !important;
+    border: 1px solid rgba(255, 255, 255, .6) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 14px 38px rgba(6, 24, 43, .32) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;               /* near-opaque already; blur only costs scroll performance */
+}
+
+/* ---------- Navigation + hero ---------- */
+.iws-themed .laundry-nav {
+    background: linear-gradient(90deg, var(--iws-deep), var(--iws-mid));
+    border-bottom: 3px solid var(--iws-bright);
+}
+.iws-themed .res-hero {
+    background: linear-gradient(120deg, var(--iws-deep) 0%, var(--iws-mid) 62%, var(--iws-teal-dark) 100%);
+    border-radius: 14px;
+}
+
+/* ---------- Logo ---------- */
+.iws-themed .brand-logo { display: block; width: 112px; height: 112px; margin: 0 auto .25rem; object-fit: contain; }
+.iws-themed .brand-logo-lg { width: 150px; height: 150px; }
+.iws-themed .nav-logo {
+    width: 42px; height: 42px; padding: 2px;
+    border-radius: 50%; background: #fff;      /* white backing so the badge reads on navy */
+    object-fit: contain; vertical-align: middle;
+}
+
+/* ---------- Icon + info-box accents (were light cyan) ---------- */
+.iws-themed .laundry-logo { background: #e8f1f7; color: var(--iws-mid); box-shadow: 0 8px 20px rgba(18, 57, 92, .18); }
+.iws-themed .laundry-icon,
+.iws-themed .reservation-lock span { color: var(--iws-mid); }
+.iws-themed .machine-icon-box { background: #e8f1f7; color: var(--iws-mid); }
+.iws-themed .reservation-lock,
+.iws-themed .arrival-card,
+.iws-themed .booking-summary { background: #f1f6fa; border-color: #d3e1ec; }
+.iws-themed .slot-free { color: var(--iws-mid); border-color: #d3e1ec; }
+.iws-themed .slot-free:hover { background: #eef6f8; border-color: var(--iws-bright); }
+
+/* ---------- Loading screen drum ---------- */
+.iws-themed .machine-drum { border-color: var(--iws-mid); box-shadow: 0 0 20px rgba(29, 81, 121, .4); }
+.iws-themed .drum-water { background-color: var(--iws-mid); }

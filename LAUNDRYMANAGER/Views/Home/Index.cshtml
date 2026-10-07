@@ -20,11 +20,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body class="laundry-page">
+<body class="laundry-page iws-themed">
     <nav class="navbar navbar-dark laundry-nav shadow-sm mb-4">
         <div class="container">
             <div>
-                <span class="navbar-brand fw-bold"><i class="bi bi-washing-machine me-2"></i>iWS Laundry</span>
+                <span class="navbar-brand fw-bold"><img src="~/images/logo.png" alt="" class="nav-logo me-2" />iWS Laundry</span>
                 <div class="small text-white-50">@residence?.Name</div>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -35,7 +35,7 @@
                     <a href="/Admin/Registrations" class="btn btn-sm btn-outline-light"><i class="bi bi-shield-lock me-1"></i>Registrations</a>
                 }
 
-                <button id="enableNotificationsBtn" class="btn btn-sm btn-outline-light">🔔</button>
+                <button id="enableNotificationsBtn" class="btn btn-sm btn-outline-light" title="Enable notifications" aria-label="Enable notifications"><i class="bi bi-bell"></i></button>
                 <a href="/Account/Logout" class="btn btn-sm btn-outline-light fw-bold">Sign Out</a>
             </div>
         </div>

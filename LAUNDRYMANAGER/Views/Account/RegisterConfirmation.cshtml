@@ -9,31 +9,16 @@
     <title>Check Your Email - iWS Laundry</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <style>
-            body {
-                background: linear-gradient(135deg, #12996b, #0d6e4d);
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .card-box {
-                background: #fff;
-                border-radius: 20px;
-                padding: 2.5rem;
-                max-width: 420px;
-                text-align: center;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            }
-    </style>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
-    <div class="card-box">
-        <i class="bi bi-envelope-check-fill text-success" style="font-size: 3rem;"></i>
-        <h4 class="fw-bold mt-3 mb-2">Check Your Email</h4>
-        <p class="text-muted">@ViewBag.Message</p>
-        <a href="/Account/Login" class="btn btn-success fw-bold mt-2">Go to Login</a>
+<body class="laundry-page iws-themed d-flex align-items-center justify-content-center mb-0">
+    <div class="card glass-card text-center" style="max-width: 420px; width: 90%;">
+        <div class="card-body p-4">
+            <img src="~/images/logo.png" alt="iWS Laundry" class="brand-logo" />
+            <h4 class="fw-bold mt-3 mb-2">Check Your Email</h4>
+            <p class="text-muted">@ViewBag.Message</p>
+            <a href="/Account/Login" class="btn btn-primary fw-bold mt-2">Go to Login</a>
+        </div>
     </div>
 </body>
 </html>

@@ -4,10 +4,15 @@ using LaundryManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
+    options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSession(options =>
@@ -23,14 +28,16 @@ builder.Services.AddHostedService<BookingReminderService>();
 
 var app = builder.Build();
 
-// =========================================================
+
 // CREATE DEMO RESIDENCE
-// =========================================================
+
 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider
         .GetRequiredService<ApplicationDbContext>();
+
+    db.Database.EnsureCreated();
 
     var connection = db.Database.GetDbConnection();
 
@@ -46,7 +53,7 @@ using (var scope = app.Services.CreateScope())
             new LaundryManager.Models.Residence
             {
                 Name = "Brandon Mansions",
-                Address = "Demo address — update before launch"
+                Address = "11A Gately Street"
             });
 
         db.SaveChanges();
@@ -147,4 +154,4 @@ app.MapControllerRoute(
     name: "indexFallback",
     pattern: "{controller}/{action=Index}/{id?}");
 
-app.Run(); ;
+app.Run();
