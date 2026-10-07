@@ -1,44 +1,43 @@
-using System.Net;
-using System.Net.Mail;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace LaundryManager.Services
 {
     public class EmailService
     {
         private readonly IConfiguration _config;
+        private readonly HttpClient _http;
 
-        public EmailService(IConfiguration config) => _config = config;
-
-        private SmtpClient CreateClient(out string senderEmail, out string senderName)
+        public EmailService(IConfiguration config)
         {
-            var server = _config["EmailSettings:SmtpServer"] ?? "smtp.gmail.com";
-            var portText = _config["EmailSettings:Port"] ?? "587";
+            _config = config;
+            _http = new HttpClient();
+        }
 
-            // Get the password from configuration first.
-            // If it is empty/missing, use the environment variable.
-            var password = _config["EmailSettings:SenderPassword"];
+        private string GetApiKey()
+        {
+            var key = Environment.GetEnvironmentVariable("BREVO_API_KEY");
 
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                password = Environment.GetEnvironmentVariable("LAUNDRY_SMTP_PASSWORD");
-            }
+            if (string.IsNullOrWhiteSpace(key))
+                key = _config["EmailSettings:BrevoApiKey"];
 
-            senderEmail = _config["EmailSettings:SenderEmail"] ?? "";
-            senderName = _config["EmailSettings:SenderName"] ?? "iWS Laundry Portal";
-
-            if (string.IsNullOrWhiteSpace(senderEmail) ||
-                string.IsNullOrWhiteSpace(password))
-            {
+            if (string.IsNullOrWhiteSpace(key))
                 throw new InvalidOperationException(
-                    "SMTP email is not configured. Set EmailSettings:SenderEmail and EmailSettings:SenderPassword, or set the LAUNDRY_SMTP_PASSWORD environment variable.");
-            }
+                    "Brevo API key is not configured. Set the BREVO_API_KEY environment variable.");
 
-            return new SmtpClient(server, int.Parse(portText))
-            {
-                Credentials = new NetworkCredential(senderEmail, password),
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network
-            };
+            return key;
+        }
+
+        private string GetSenderEmail()
+        {
+            return _config["EmailSettings:SenderEmail"]
+                   ?? "rethabilemokwane1@gmail.com";
+        }
+
+        private string GetSenderName()
+        {
+            return _config["EmailSettings:SenderName"] ?? "iWS Laundry Portal";
         }
 
         public async Task SendEmailAsync(
@@ -46,21 +45,10 @@ namespace LaundryManager.Services
             string subject,
             string body)
         {
-            using var client = CreateClient(
-                out var senderEmail,
-                out var senderName);
-
-            using var message = new MailMessage
-            {
-                From = new MailAddress(senderEmail, senderName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = false
-            };
-
-            message.To.Add(recipientEmail);
-
-            await client.SendMailAsync(message);
+            await SendViaBrevoAsync(
+                new List<string> { recipientEmail },
+                subject,
+                body);
         }
 
         public async Task SendEmailToManyAsync(
@@ -77,29 +65,52 @@ namespace LaundryManager.Services
             if (!uniqueRecipients.Any())
                 return;
 
-            using var client = CreateClient(
-                out var senderEmail,
-                out var senderName);
+            await SendViaBrevoAsync(uniqueRecipients, subject, body);
+        }
 
-            using var message = new MailMessage
+        private async Task SendViaBrevoAsync(
+            List<string> recipients,
+            string subject,
+            string body)
+        {
+            var apiKey = GetApiKey();
+            var senderEmail = GetSenderEmail();
+            var senderName = GetSenderName();
+
+            var payload = new
             {
-                From = new MailAddress(senderEmail, senderName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = false
+                sender = new
+                {
+                    name = senderName,
+                    email = senderEmail
+                },
+                to = recipients.Select(r => new { email = r }).ToArray(),
+                subject = subject,
+                textContent = body
             };
 
-            foreach (var email in uniqueRecipients)
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                "https://api.brevo.com/v3/smtp/email")
             {
-                message.Bcc.Add(email);
+                Content = content
+            };
+
+            request.Headers.Add("api-key", apiKey);
+            request.Headers.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(
+                    $"Brevo API failed ({response.StatusCode}): {errorBody}");
             }
-
-            // Gmail requires a To address.
-            // Using the configured sender keeps the recipient addresses private.
-            message.To.Add(senderEmail);
-
-            await client.SendMailAsync(message);
         }
     }
 }
-
